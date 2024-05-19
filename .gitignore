@@ -1,0 +1,8 @@
+*.pyc
+models/
+__pycache__/
+*.out
+results/
+useless/
+sruns/
+trash/
