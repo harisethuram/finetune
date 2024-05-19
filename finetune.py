@@ -30,7 +30,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-TOKEN = "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"
+TOKEN = ""
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_NAME = sys.argv[1]
 MODEL_CACHE = sys.argv[2]
