@@ -37,7 +37,7 @@ def finetune(model, loss_fn, num_epochs, optimizer, train_loader, val_loader, nu
         print(f"f1: {f1}, acc: {acc}, train_f1: {train_f1}, train_acc: {train_acc}")
         pbar = tqdm(train_loader)
         for batch in pbar:
-            logits = model(batch[0], batch[1], classification_idx)
+            logits, embs = model(batch[0], batch[1], classification_idx=classification_idx, want_embs=True)
             loss = loss_fn(logits, batch[2])
             pbar.set_description(f"Loss: {round(loss.item(), 5)}")
             optimizer.zero_grad()

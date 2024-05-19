@@ -29,9 +29,13 @@ class ClassificationLM(nn.Module):
             for param in self.pretrained_model.parameters():
                 param.required_grad = False
         
-    def forward(self, input_ids, attention_mask, classification_idx=-1):
+    def forward(self, input_ids, attention_mask, classification_idx=-1, want_embs=False):
         input_embs = self.emb_layer(input_ids)
+        input_embs.requires_grad_()
+        input_embs.retain_grad()
         outputs = self.pretrained_model(inputs_embeds=input_embs, attention_mask=attention_mask, output_hidden_states=True)
         # outputs = self.pretrained_model(input_ids, attention_mask, output_hidden_states=True)
         logits = self.head(outputs.hidden_states[-1][:, classification_idx, ...])
-        return logits, input_embs
+        if want_embs:
+            return logits, input_embs
+        return logits
