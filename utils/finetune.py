@@ -17,6 +17,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
+
 import numpy as np
 
 from utils.evaluate import evaluate
@@ -38,7 +39,7 @@ def finetune(model, loss_fn, num_epochs, optimizer, train_loader, val_loader, nu
         pbar = tqdm(train_loader)
         for batch in pbar:
             logits, embs = model(batch[0], batch[1], classification_idx=classification_idx, want_embs=True)
-            loss = loss_fn(logits, batch[2])
+            loss = loss_fn(logits, batch[2], embs)
             pbar.set_description(f"Loss: {round(loss.item(), 5)}")
             optimizer.zero_grad()
             loss.backward()

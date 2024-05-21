@@ -6,3 +6,5 @@ results/
 useless/
 sruns/
 trash/
+tests/
+keys.py
