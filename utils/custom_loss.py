@@ -6,12 +6,20 @@ if unwanted_path in sys.path:
     
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
+class CrossEntropyLoss(nn.Module):
+    def __init__(self):
+        super(CrossEntropyLoss, self).__init__()
+
+    def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
+        return F.cross_entropy(output, target)
+        
 class CompetentLoss(nn.Module):
     def __init__(self, ):
         super(CompetentLoss, self).__init__()
 
-    def forward(self, output, target, embeddings, lambda_entropy=0.1):
+    def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
         cross_entropy_loss = F.cross_entropy(output, target)
         
         # Compute gradients with respect to embeddings
@@ -20,14 +28,14 @@ class CompetentLoss(nn.Module):
         grads = embeddings.grad
         
         # Calculate L2 norm of gradients
-        l2_norms = torch.norm(grads, dim=-1)
+        top_l2_norms = torch.topk(torch.norm(grads, dim=-1), k, dim=-1).values
         
-        # Normalize the gradient scores
-        normalized_scores = l2_norms / torch.sum(l2_norms)
-        
+        # Normalize the gradient scoress
+        normalized_scores = (top_l2_norms / torch.sum(top_l2_norms) + 1e-5)        
+
         # Compute entropy
         entropy = -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
-        
+
         # Combine cross-entropy loss with entropy
         total_loss = cross_entropy_loss + lambda_entropy * entropy
         

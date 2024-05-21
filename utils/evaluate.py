@@ -26,7 +26,7 @@ def evaluate(model, loader, num_labels, classification_idx=-1, cap=1000):
         for batch in loader:
             if len(y) > cap:
                 break
-            logits = model(batch[0], batch[1], classification_idx)
+            logits = model(batch[0], batch[1], classification_idx=classification_idx, want_embs=False)
             y_hat += logits.argmax(dim=-1).tolist()
             y += batch[2].tolist()
     avg = "binary"

@@ -11,31 +11,33 @@ num_labels=$9
 num_epochs=1
 MODEL_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/"
 DATASET_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/datasets/"
-# FINETUNED_MODEL_DIR=f"/gscratch/ark/hari/msc/results/{DATASET}/{DATA_DIR}/{MODEL_NAME}/model.pt"
 # models=("meta-llama/Llama-2-7b-hf")
-models=("facebook/opt-1.3b") # "meta-llama/Llama-2-7b-hf")
+models=("facebook/opt-1.3b" "meta-llama/Llama-2-7b-hf")
+loss_fns=("COMP" "CE")
 class_idx=(-1 -1)
 
 for i in "${!models[@]}"; do
-    
-    m=${models[$i]}
-    c=${class_idx[$i]}
-    echo "running $m on $dataset/$data_dir"
-    python finetune.py\
-    $m\
-    $MODEL_CACHE\
-    $dataset\
-    $data_dir\
-    $DATASET_CACHE\
-    "/gscratch/ark/hari/msc/tests/embs_tests/results/$dataset/$data_dir/$m/"\
-    "/gscratch/ark/hari/msc/tests/embs_tests/results/$dataset/$data_dir/$m/model.pt"\
-    $num_epochs\
-    $null_lab\
-    $c\
-    $b_size\
-    $num_labels\
-    $TRAIN_CAP\
-    $VAL_CAP\
-    $TEST_CAP\
-    "$cols"
+    for loss_fn in "${loss_fns[@]}"; do
+        m=${models[$i]}
+        c=${class_idx[$i]}
+        echo "running $m on $dataset/$data_dir w/ $loss_fn"
+        python finetune.py\
+        --model_name $m\
+        --model_cache $MODEL_CACHE\
+        --dataset $dataset\
+        --data_dir $data_dir\
+        --dataset_cache $DATASET_CACHE\
+        --results_dir "/gscratch/ark/hari/finetune/results/$dataset/$data_dir/$m/$loss_fn/"\
+        --num_epochs $num_epochs\
+        --null_lab $null_lab\
+        --classification_idx $c\
+        --b_size $b_size\
+        --num_labels $num_labels\
+        --train_cap $TRAIN_CAP\
+        --val_cap $VAL_CAP\
+        --test_cap $TEST_CAP\
+        --input_cols "$cols"\
+        --loss_fn_name $loss_fn\
+        --overwrite
+    done
 done

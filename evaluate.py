@@ -25,7 +25,7 @@ from utils.evaluate import evaluate
 from model.ClassificationHead import ClassificationHead
 from model.ClassificationLM import ClassificationLM
 
-# TOKEN = "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"
+from keys import HF_TOKEN
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # MODEL_NAME = sys.argv[1]
 # MODEL_CACHE = sys.argv[2]
@@ -102,5 +102,5 @@ def main():
     
     # torch.save(classification_model, FINETUNED_MODEL_DIR)
     print("Complete!")
-    
-main()
+if __name__ == "__main__":  
+    main()
