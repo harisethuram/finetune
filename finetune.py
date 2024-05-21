@@ -49,8 +49,6 @@ parser.add_argument("--loss_fn_name")
 parser.add_argument("--overwrite", action="store_true")
 args = parser.parse_args()
 
-
-
 def main():
     try:
         with open(args.results_dir + "losses.txt") as fresults_exist:
