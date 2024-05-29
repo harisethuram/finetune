@@ -12,14 +12,14 @@ class CrossEntropyLoss(nn.Module):
     def __init__(self):
         super(CrossEntropyLoss, self).__init__()
 
-    def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
+    def forward(self, output, target, embeddings, k=10):
         return F.cross_entropy(output, target)
         
 class CompetentLoss(nn.Module):
-    def __init__(self, ):
+    def __init__(self):
         super(CompetentLoss, self).__init__()
 
-    def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
+    def forward(self, output, target, embeddings, entropy_func, k=10):
         cross_entropy_loss = F.cross_entropy(output, target)
         
         # Compute gradients with respect to embeddings
@@ -35,8 +35,9 @@ class CompetentLoss(nn.Module):
 
         # Compute entropy
         entropy = -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
+        # max_entropy = -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
 
         # Combine cross-entropy loss with entropy
-        total_loss = cross_entropy_loss + lambda_entropy * entropy
+        total_loss = entropy_func(cross_entropy_loss, entropy)
         
         return total_loss

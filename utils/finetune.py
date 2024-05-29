@@ -5,7 +5,7 @@ if unwanted_path in sys.path:
     sys.path.remove(unwanted_path)
 
 
-from transformers import AutoTokenizer, AutoModelForCausalLM#, DataCollatorWithPadding, HfArgumentParser, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
 from sklearn.metrics import f1_score, accuracy_score
 from tqdm import tqdm
@@ -22,7 +22,7 @@ import numpy as np
 
 from utils.evaluate import evaluate
 
-def finetune(model, loss_fn, num_epochs, optimizer, train_loader, val_loader, num_labels, classification_idx):
+def finetune(model, entropy_func, loss_fn, num_epochs, optimizer, train_loader, val_loader, num_labels, classification_idx):
     losses = []
     val_metrics = []
     train_metrics = []
@@ -39,7 +39,7 @@ def finetune(model, loss_fn, num_epochs, optimizer, train_loader, val_loader, nu
         pbar = tqdm(train_loader)
         for batch in pbar:
             logits, embs = model(batch[0], batch[1], classification_idx=classification_idx, want_embs=True)
-            loss = loss_fn(logits, batch[2], embs)
+            loss = loss_fn(logits, batch[2], embs, entropy_func)
             pbar.set_description(f"Loss: {round(loss.item(), 5)}")
             optimizer.zero_grad()
             loss.backward()
@@ -49,6 +49,7 @@ def finetune(model, loss_fn, num_epochs, optimizer, train_loader, val_loader, nu
 
             optimizer.step()
             losses.append(loss.item())
+
     post_f1, post_acc, post_y_hat = evaluate(model, val_loader, num_labels, classification_idx)
     train_post_f1, train_post_acc, train_post_y_hat = evaluate(model, train_loader, classification_idx)
 
