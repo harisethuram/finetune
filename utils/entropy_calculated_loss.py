@@ -8,49 +8,39 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class InverseExpLoss(nn.Module):
+def cross_entropy_loss(output, target):
+    loss = F.cross_entropy(output, target)
+    output.retain_grad()
+    loss.backward(retain_graph=True)
+    return loss
+
+def entropy(grads, k):
+    top_l2_norms = torch.topk(torch.norm(grads, dim=-1), k, dim=-1).values
+    normalized_scores = (top_l2_norms / torch.sum(top_l2_norms) + 1e-5)
+
+    return -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
+
+def inverse_exp_entropy(grads, k):
+    return torch.exp(-entropy(grads, k))
+
+def inverse_entropy(grads, k):
+    return 1 / entropy(grads, k)
+
+class HelperCustomLoss(nn.Module):
+    def __init__(self, loss_func, reg_func):
+        super(HelperCustomLoss, self).__init__()
+        self.loss_func = loss_func
+        self.reg_func = reg_func
+
     def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
-        cross_entropy_loss = F.cross_entropy(output, target)
-
-        # Compute gradients with respect to embeddings
-        output.retain_grad()
-        cross_entropy_loss.backward(retain_graph=True)
+        loss = self.loss_func(output, target)
         grads = embeddings.grad
+        return loss + lambda_entropy * self.reg_func(grads, k)
 
-        # Calculate L2 norm of gradients
-        top_l2_norms = torch.topk(torch.norm(grads, dim=-1), k, dim=-1).values
+class InverseExpLoss(HelperCustomLoss):
+    def __init__(self):
+        super(InverseExpLoss, self).__init__(cross_entropy_loss, inverse_exp_entropy)
 
-        # Normalize the gradient scoress
-        normalized_scores = (top_l2_norms / torch.sum(top_l2_norms) + 1e-5)
-
-        # Compute entropy
-        entropy = -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
-
-        # Combine cross-entropy loss with entropy using inverse exponential to weight smaller entropy values as more costly
-        total_loss = cross_entropy_loss + lambda_entropy * torch.exp(-entropy)
-
-        return total_loss
-
-
-class InverseLoss(nn.Module):
-    def forward(self, output, target, embeddings, lambda_entropy=0.1, k=10):
-        cross_entropy_loss = F.cross_entropy(output, target)
-
-        # Compute gradients with respect to embeddings
-        output.retain_grad()
-        cross_entropy_loss.backward(retain_graph=True)
-        grads = embeddings.grad
-
-        # Calculate L2 norm of gradients
-        top_l2_norms = torch.topk(torch.norm(grads, dim=-1), k, dim=-1).values
-
-        # Normalize the gradient scoress
-        normalized_scores = (top_l2_norms / torch.sum(top_l2_norms) + 1e-5)
-
-        # Compute entropy
-        entropy = -torch.sum(normalized_scores * torch.log(normalized_scores + 1e-8))
-
-        # Combine cross-entropy loss with entropy using inverse to weight smaller entropy values as more costly
-        total_loss = cross_entropy_loss + lambda_entropy / entropy
-
-        return total_loss
+class InverseLoss(HelperCustomLoss):
+    def __init__(self):
+        super(InverseLoss, self).__init__(cross_entropy_loss, inverse_entropy)
