@@ -13,4 +13,3 @@
 # I use source to initialize conda into the right environment.
 source activate testenv5
 bash run/sst2.sh
-bash run/snli.sh

@@ -12,11 +12,11 @@ num_labels=${10}
 num_epochs=1
 MODEL_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/"
 DATASET_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/datasets/"
-models=("facebook/opt-1.3b") # "meta-llama/Llama-2-7b-hf")
-loss_fns=("MASK") # "COMP" "CE")
+models=("facebook/opt-1.3b" "meta-llama/Llama-2-7b-hf")
+loss_fns=("MASK" "COMP" "CE")
 # loss_fns=("COMP")
-entropy_funcs=("inverse_entropy") # "subtract_entropy" "exp_subtract_entropy")
-lambda_entropies=(0.01) # 0.1 1 10)
+entropy_funcs=("inverse_entropy" "subtract_entropy" "exp_subtract_entropy")
+lambda_entropies=(0.1 0.5 1)
 class_idx=(-1 -1)
 
 for i in "${!models[@]}"; do
@@ -32,7 +32,7 @@ for i in "${!models[@]}"; do
                 --dataset $dataset\
                 --data_dir $data_dir\
                 --dataset_cache $DATASET_CACHE\
-                --results_dir "/gscratch/ark/hari/finetune/results/$dataset/$data_dir/$m/$loss_fn/$entropy_func/$lambda_entropy/"\
+                --results_dir "/gscratch/ark/hari/finetune/results/$dataset/$data_dir/$m/loss_$loss_fn/$entropy_func/lambda_$lambda_entropy/"\
                 --num_epochs $num_epochs\
                 --null_lab $null_lab\
                 --classification_idx $c\
@@ -47,8 +47,7 @@ for i in "${!models[@]}"; do
                 --entropy_func $entropy_func\
                 --lambda_entropy $lambda_entropy\
                 --k 5\
-                --copy_b_size 16\
-                --overwrite
+                --copy_b_size 16
             done
         done
     done

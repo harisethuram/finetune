@@ -33,7 +33,7 @@ def masked_finetune(model, entropy_func, num_epochs, optimizer, train_loader, va
     model.train()
     for epoch in range(num_epochs):
         print(f"epoch {epoch}/{num_epochs}")
-        f1, acc, _ = evaluate(model, val_loader, classification_idx)
+        f1, acc, _ = evaluate(model, val_loader, num_labels, classification_idx)
         val_metrics.append((f1, acc))
 
         train_f1, train_acc, _ = evaluate(model, train_loader, num_labels, classification_idx)

@@ -121,7 +121,6 @@ def main():
     
     print("Saving...")
     os.makedirs(os.path.dirname(args.results_dir), exist_ok=True)
-    os.makedirs(os.path.dirname(args.finetuned_model_dir), exist_ok=True)
 
     with open(args.results_dir+"val_results.csv", "w+") as f:
         f.write("f1,acc\n")

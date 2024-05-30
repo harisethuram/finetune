@@ -28,6 +28,7 @@ def finetune(model, entropy_func, loss_fn, num_epochs, optimizer, train_loader, 
     train_metrics = []
     
     model.train()
+
     for epoch in range(num_epochs):
         print(f"epoch {epoch}/{num_epochs}")
         f1, acc, _ = evaluate(model, val_loader, classification_idx)

@@ -4,8 +4,8 @@ cols="premise,hypothesis"
 null_lab=-1
 train_b_size=16
 val_b_size=16
-train_cap=100
-val_cap=1000
+train_cap=250000
+val_cap=1000000
 test_cap=1000
 num_labels=3
 

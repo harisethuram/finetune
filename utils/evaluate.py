@@ -20,6 +20,8 @@ import numpy as np
 
 def evaluate(model, loader, num_labels, classification_idx=-1, cap=1000):
     model.eval()
+    # print(num_labels)
+    # input()
     y_hat = []
     y = []
     with torch.no_grad():
