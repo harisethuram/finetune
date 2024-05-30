@@ -1,4 +1,4 @@
-import sys
+import argparse, sys
 
 unwanted_path = '/mmfs1/home/hsethu/.local/lib/python3.9/site-packages'
 if unwanted_path in sys.path:
@@ -41,24 +41,31 @@ B_SIZE = 16
 NUM_LABELS = 3
 VAL_CAP = 1000
 cols = "premise,hypothesis".split(",")
-    
+parser=argparse.ArgumentParser()
+parser.add_argument("--tr_dataset")
+parser.add_argument("--tr_dir")
+parser.add_argument("--model_name")
+parser.add_argument("--dataset")
+parser.add_argument("--data_dir")
+
 
 def main():
     print(f"batch size: {B_SIZE}")
     TOKEN = "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"
     DATASET_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/datasets/"
+    args = parser.parse_args()
 
-    tr_dataset = "stanfordnlp/snli"
-    tr_dir = "plain_text"
-    model_name = "meta-llama/Llama-2-7b-hf"
+    tr_dataset = args.tr_dataset
+    tr_dir = args.tr_dir
+    model_name = args.model_name
     tr_path = f"/gscratch/ark/hari/msc/results/{tr_dataset}/{tr_dir}/{model_name}/"
     model = torch.load(tr_path + "model.pt").cuda()
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=TOKEN)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    dataset = "adv_glue"
-    data_dir = "adv_mnli"
+    dataset = args.dataset
+    data_dir = args.data_dir
     path = f"/gscratch/ark/hari/msc/results/eval/{dataset}/{data_dir}/{model_name}/"
     print(F"Loading {dataset}/{data_dir}...")
     raw_dataset = load_dataset(dataset, data_dir, cache_dir=DATASET_CACHE)
