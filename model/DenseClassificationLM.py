@@ -39,11 +39,14 @@ class DenseClassificationLM(nn.Module):
         last_layer = outputs.hidden_state[-1]
         seq_len = last_layer.shape[1]
 
-        sum_logits = 0
-        for i in range(seq_len):
-            sum_logits += self.head(outputs.hidden_state[-1][:, i, ...])
+        # sum_logits = 0
+        # for i in range(seq_len):
+        #     sum_logits += self.head(last_layer[:, i, ...])
 
-        mean_logits = sum_logits / seq_len
+        # mean_logits = sum_logits / seq_len
+
+        logits = self.head(last_layer[:, :, ...])
+        mean_logits = logits.mean(dim=1)
 
         if want_embs:
             return mean_logits, input_embs
