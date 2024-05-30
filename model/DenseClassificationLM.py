@@ -36,8 +36,8 @@ class DenseClassificationLM(nn.Module):
         outputs = self.pretrained_model(inputs_embeds=input_embs, attention_mask=attention_mask, output_hidden_states=True)
         # outputs = self.pretrained_model(input_ids, attention_mask, output_hidden_states=True)
 
-        last_layer = outputs.hidden_state[-1]
-        seq_len = last_layer.shape[1]
+        # last_layer = outputs.hidden_state[-1]
+        # seq_len = last_layer.shape[1]
 
         # sum_logits = 0
         # for i in range(seq_len):
@@ -45,7 +45,7 @@ class DenseClassificationLM(nn.Module):
 
         # mean_logits = sum_logits / seq_len
 
-        logits = self.head(last_layer[:, :, ...])
+        logits = self.head(outputs.hidden_state[-1][:, :, ...])
         mean_logits = logits.mean(dim=1)
 
         if want_embs:
