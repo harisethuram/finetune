@@ -28,10 +28,12 @@ def finetune(model, entropy_func, loss_fn, num_epochs, optimizer, train_loader, 
     train_metrics = []
     
     model.train()
+    # print(num_labels)
+    # input()
 
     for epoch in range(num_epochs):
         print(f"epoch {epoch}/{num_epochs}")
-        f1, acc, _ = evaluate(model, val_loader, classification_idx)
+        f1, acc, _ = evaluate(model, val_loader, num_labels, classification_idx)
         val_metrics.append((f1, acc))
 
         train_f1, train_acc, _ = evaluate(model, train_loader, num_labels, classification_idx)
@@ -52,7 +54,7 @@ def finetune(model, entropy_func, loss_fn, num_epochs, optimizer, train_loader, 
             losses.append(loss.item())
 
     post_f1, post_acc, post_y_hat = evaluate(model, val_loader, num_labels, classification_idx)
-    train_post_f1, train_post_acc, train_post_y_hat = evaluate(model, train_loader, classification_idx)
+    train_post_f1, train_post_acc, train_post_y_hat = evaluate(model, train_loader, num_labels, classification_idx)
 
     val_metrics.append((post_f1, post_acc))
     train_metrics.append((train_post_f1, train_post_acc))

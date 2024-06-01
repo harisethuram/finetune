@@ -25,10 +25,13 @@ import numpy as np
 
 from utils.evaluate import evaluate
 
-def masked_finetune(model, entropy_func, num_epochs, optimizer, train_loader, val_loader, num_labels, classification_idx, k=10, copy_b_size=16, device="cuda"):
+def masked_finetune(model, entropy_func, num_epochs, optimizer, train_loader, val_loader, num_labels, classification_idx, k=10, copy_b_size=16, device="cuda", is_llama=False):
     losses = []
     val_metrics = []
     train_metrics = []
+    # print(is_llama)
+    if is_llama:
+        copy_b_size = 4
     
     model.train()
     for epoch in range(num_epochs):
@@ -83,7 +86,7 @@ def masked_finetune(model, entropy_func, num_epochs, optimizer, train_loader, va
             losses.append(loss.item())
 
     post_f1, post_acc, post_y_hat = evaluate(model, val_loader, num_labels, classification_idx)
-    train_post_f1, train_post_acc, train_post_y_hat = evaluate(model, train_loader, classification_idx)
+    train_post_f1, train_post_acc, train_post_y_hat = evaluate(model, train_loader, num_labels, classification_idx)
 
     val_metrics.append((post_f1, post_acc))
     train_metrics.append((train_post_f1, train_post_acc))

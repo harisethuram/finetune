@@ -108,7 +108,8 @@ def main():
     if args.loss_fn_name == "MASK":
         train_metrics, val_metrics, post_y_hat, losses = masked_finetune(classification_model, entropy_func, args.num_epochs, optimizer,\
                                                                          train_loader, validation_loader, args.num_labels,\
-                                                                         args.classification_idx, args.k, args.copy_b_size, DEVICE)
+                                                                         args.classification_idx, args.k, args.copy_b_size, DEVICE,\
+                                                                         args.model_name=="meta-llama/Llama-2-7b-hf")
     else:
         if args.loss_fn_name == "CE":
             loss_fn = CrossEntropyLoss()

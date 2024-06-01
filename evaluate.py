@@ -51,7 +51,7 @@ def main():
     tr_dataset = "stanfordnlp/snli"
     tr_dir = "plain_text"
     model_name = "meta-llama/Llama-2-7b-hf"
-    tr_path = f"/gscratch/ark/hari/msc/results/{tr_dataset}/{tr_dir}/{model_name}/"
+    tr_path = f"/gscratch/ark/hari/finetune/results/{tr_dataset}/{tr_dir}/{model_name}/"
     model = torch.load(tr_path + "model.pt").cuda()
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=TOKEN)
     if tokenizer.pad_token_id is None:
