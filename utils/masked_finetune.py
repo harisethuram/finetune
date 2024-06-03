@@ -53,6 +53,8 @@ def masked_finetune(model, entropy_func, num_epochs, optimizer, train_loader, va
             copy_masks = attention_mask.repeat((seq_len, 1))
             input_ids_copy = input_ids.repeat((copy_b_size, 1))
             copy_masks[torch.arange(seq_len), torch.arange(seq_len)] = 0
+            # print(copy_masks)
+            # input() 
             probs_copy = torch.zeros(seq_len).to(device) # probability of correct class removing the ith token
 
             for i in range(int(seq_len/copy_b_size)): # get the probabilities if you mask out the ith word

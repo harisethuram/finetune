@@ -13,6 +13,7 @@ class CrossEntropyLoss(nn.Module):
         super(CrossEntropyLoss, self).__init__()
 
     def forward(self, output, target, embeddings, k=10):
+        # print("CE")
         return F.cross_entropy(output, target)
         
 class CompetentLoss(nn.Module):

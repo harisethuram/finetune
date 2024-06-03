@@ -25,7 +25,7 @@ import sys
 from tqdm import tqdm
 import os
 import matplotlib.pyplot as plt
-
+import numpy as np
 from utils.preprocess import preprocess
 from keys import HF_TOKEN
 
@@ -47,10 +47,12 @@ print(args)
 
 # NEED TO HAVE .csv OF SST2 WORDS
 
-def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks, labels, classification_idx: int, result_dir, dataset_length, csv_file, title, k=5, copy_b_size=4, device="cuda"):
+def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks, labels, classification_idx: int, result_dir, dataset_length, csv_file, title, k=5, copy_b_size=16, device="cuda"):
     ### Varun's Code ###
     # Get .csv of ALL words
     all_df = pd.read_csv(csv_file)
+    # print(labels)
+    # print(labels.shape, input_ids.shape)
 
     # Filter into an artifact dataframe
     artifact_df = all_df[all_df["isArtifact"] == True][["Unnamed: 0", "n"]].rename(columns={"Unnamed: 0": "word"})
@@ -85,27 +87,26 @@ def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks
         sentence = sentences[i]
         input_id = torch.unsqueeze(input_ids[i], dim=0)
         attention_mask = torch.unsqueeze(attention_masks[i], dim=0)
-        label = labels[i]
-        # sentence, input_id, attention_mask, label in zip(sentences, input_ids, attention_masks, labels):
+        label = torch.unsqueeze(labels[i], dim=0)
       
         ### Hari's Code ###
+
         seq_len = torch.sum(attention_mask).item()
-        # print(seq_
-        
-        copy_masks = attention_mask.repeat((seq_len, 1))
-        input_ids_copy = input_ids.repeat((copy_b_size, 1))
-        copy_masks[torch.arange(seq_len), torch.arange(seq_len)] = 0
-        probs_copy = torch.zeros(seq_len).to(device) # probability of correct class removing the ith token
-        
-        for i in range(int(seq_len/copy_b_size)): # get the probabilities if you mask out the ith word
-            masks_i = copy_masks[i * copy_b_size : min((i+1) * copy_b_size, seq_len)]
-            logits_i = model(input_ids_copy[:masks_i.shape[0], :], masks_i, classification_idx=classification_idx)
-            probs_copy[i * copy_b_size : min((i+1) * copy_b_size, seq_len)] = torch.squeeze(F.softmax(logits_i, dim=-1)[..., label])
 
         # compute the entropy
-        output = model(input_id, attention_mask, classification_idx=classification_idx)
+        output, embs = model(input_id, attention_mask, classification_idx=classification_idx, want_embs=True)
         prob = F.softmax(output, dim=-1)[..., label]
-        diffs = torch.absolute(prob - probs_copy)# F.softmax(torch.topk(torch.absolute(prob - probs_copy), k).values)
+        loss = -torch.log(prob)
+
+        output.retain_grad()
+        loss.backward()
+        grads = embs.grad
+        # diffs = torch.absolute(prob)# F.softmax(torch.topk(torch.absolute(prob - probs_copy), k).values)
+        diffs = torch.norm(grads, dim=-1)[...,:seq_len]
+
+        # Normalize the gradient scoress
+        # prob = F.softmax(output, dim=-1)[..., label]
+        # diffs = torch.absolute(prob - probs_copy)# F.softmax(torch.topk(torch.absolute(prob - probs_copy), k).values)
 
         combined_saliency_probs = []
         subword_groups = [tokenizer.encode(x, add_special_tokens=False) for x in sentence.strip().split()]
@@ -145,7 +146,7 @@ def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks
 
     # Sentence-level
     diff_sum = torch.Tensor(diff_sum)
-    with open(result_dir+"mask_artifacts.txt", "w+") as f:
+    with open(result_dir+"gradient_artifacts.txt", "w+") as f:
         f.write(f"Difference when conditioned on artifacts: {torch.mean(torch.Tensor(diff_sum))}\n")
 
         # Dataset-level
@@ -162,7 +163,6 @@ def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks
         counts = [num_topk_words * p_artifact, num_artifacts_in_topk, num_topk_words * p_non_artifact, num_non_artifacts_in_topk]
         bar_colors = ['tab:red', 'tab:blue', 'tab:red', 'tab:blue']
         
-        
         f.write(f"Difference when conditioned on artifacts: {torch.mean(diff_sum)}\n")
         for label, count in zip(labels, counts):
             f.write(f"{label}: {count}\n")
@@ -170,7 +170,7 @@ def masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks
     plt.bar(labels, counts, color=bar_colors)
     plt.xticks(rotation=-45)
     plt.tight_layout()
-    plt.savefig(result_dir+"mask_artifacts.png")
+    plt.savefig(result_dir+"gradient_artifacts.png")
     # plt.show()
     ### End Varun's Code ###
   
@@ -206,7 +206,7 @@ def main():
     # print(sentences[:10])
     info = args.results_dir.split("/")
     title = f"Expected vs. Actual counts for Artifacts/Non-Artifacts\nin the Top-{5} Most Salient Words\nOn {args.dataset}/{args.data_dir} using {args.model_name}\nW/ {info[-4]}, {info[-3]}, {info[-2]}"
-    masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks, labels, -1, args.results_dir, n, args.csv_file, title)
+    masked_saliency_calc(model, tokenizer, sentences, input_ids, attention_masks, labels, -1, args.results_dir, n, args.csv_file, title, device=DEVICE)
 
 
 if __name__ == "__main__":

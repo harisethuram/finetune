@@ -13,10 +13,10 @@ num_epochs=1
 MODEL_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/"
 DATASET_CACHE="/gscratch/ark/hari/generative-classification/generative-classification/models/datasets/"
 models=("facebook/opt-1.3b" "meta-llama/Llama-2-7b-hf")
-loss_fns=("COMP" "CE")
+loss_fns=("CE")
 # loss_fns=("COMP")
 entropy_funcs=("subtract_entropy" "exp_subtract_entropy")
-lambda_entropies=(0.1 1)
+lambda_entropies=(0)
 class_idx=(-1 -1)
 
 for i in "${!models[@]}"; do

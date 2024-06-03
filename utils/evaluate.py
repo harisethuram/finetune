@@ -17,6 +17,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
 import numpy as np
+from tqdm import tqdm
 
 def evaluate(model, loader, num_labels, classification_idx=-1, cap=1000):
     model.eval()
@@ -25,7 +26,7 @@ def evaluate(model, loader, num_labels, classification_idx=-1, cap=1000):
     y_hat = []
     y = []
     with torch.no_grad():
-        for batch in loader:
+        for batch in tqdm(loader):
             if len(y) > cap:
                 break
             logits = model(batch[0], batch[1], classification_idx=classification_idx, want_embs=False)

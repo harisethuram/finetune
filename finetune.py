@@ -59,11 +59,12 @@ args = parser.parse_args()
 print(args)
 
 def main():
+    print(args.results_dir+"losses.txt")
     try:
         with open(args.results_dir + "losses.txt") as fresults_exist:
             if len(fresults_exist.readlines()) > 0 and not args.overwrite:
                 print(f'Results already exists. exiting.')
-                return
+                # return None
     except Exception as e:
         pass 
 
